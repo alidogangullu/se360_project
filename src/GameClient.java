@@ -1,6 +1,4 @@
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,11 +13,11 @@ public class GameClient extends JFrame {
     int turnCount;
     String gameStateLogs;
 
+    ImageIcon zero = new ImageIcon("images/0.png");
     ImageIcon one = new ImageIcon("images/1.png");
     ImageIcon two = new ImageIcon("images/2.png");
     ImageIcon three = new ImageIcon("images/3.png");
     ImageIcon four = new ImageIcon("images/4.png");
-    ImageIcon five = new ImageIcon("images/5.png");
 
     private JLabel opponentFirst;
     private JLabel playerFirst;
@@ -149,8 +147,6 @@ public class GameClient extends JFrame {
             throw new RuntimeException(e);
         }
 
-        System.out.println(gameStateLogs);
-
         String[] parts = gameStateLogs.split("/");
 
         int receivedTurnCount = 0;
@@ -163,7 +159,6 @@ public class GameClient extends JFrame {
 
         if (turnCount!=receivedTurnCount){
             turnCount = Math.max(receivedTurnCount,turnCount);
-            System.out.println(turnCount);
         }
     }
 }
