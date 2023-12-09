@@ -5,6 +5,8 @@ import java.net.Socket;
 public class GameServer {
     private void inGameProcess(Player player1, Player player2) throws IOException {
 
+        int turnCount = 0;
+
         PrintWriter player1Out = null;
         PrintWriter player2Out = null;
 
@@ -14,10 +16,43 @@ public class GameServer {
         player2Out = new PrintWriter(player2.getPlayerSocket().getOutputStream(), true);
         player2Out.println("PlayerNo=2/" + "OpponentName=" + player1.getNickName() +"/");
 
+        BufferedReader player1In = new BufferedReader(new InputStreamReader(player1.getPlayerSocket().getInputStream()));
+        BufferedReader player2In = new BufferedReader(new InputStreamReader(player2.getPlayerSocket().getInputStream()));
+
         while (true) {
 
-            //oyun ici
+            if ( turnCount % 2 == 0) {
+                String player1Message = player1In.readLine();
+                String[] player1Info = player1Message.split("/");
+                int receivedTurnCount1 = 0;
+                for (String part : player1Info) {
+                    if (part.startsWith("TurnCount=")) {
+                        receivedTurnCount1 = Integer.parseInt(part.split("=")[1].split("/")[0]);
+                        break;
+                    }
+                }
+                if (turnCount != receivedTurnCount1) {
+                    turnCount = receivedTurnCount1;
+                    player2Out.println("TurnCount=" + turnCount + "/");
+                }
+            }
 
+            if(turnCount % 2 != 0) {
+                String player2Message = player2In.readLine();
+
+                String[] player2Info = player2Message.split("/");
+                int receivedTurnCount2 = 0;
+                for (String part : player2Info) {
+                    if (part.startsWith("TurnCount=")) {
+                        receivedTurnCount2 = Integer.parseInt(part.split("=")[1].split("/")[0]);
+                        break;
+                    }
+                }
+                if (turnCount != receivedTurnCount2) {
+                    turnCount = receivedTurnCount2;
+                    player1Out.println("TurnCount=" + turnCount + "/");
+                }
+            }
         }
     }
 

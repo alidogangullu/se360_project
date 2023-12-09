@@ -1,4 +1,6 @@
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,11 +10,17 @@ import java.net.Socket;
 public class GameClient extends JFrame {
     User user;
     Socket socket;
+    BufferedReader in;
+    PrintWriter out;
+    int turnCount;
+    String gameStateLogs;
+
     ImageIcon one = new ImageIcon("images/1.png");
     ImageIcon two = new ImageIcon("images/2.png");
     ImageIcon three = new ImageIcon("images/3.png");
     ImageIcon four = new ImageIcon("images/4.png");
     ImageIcon five = new ImageIcon("images/5.png");
+
     private JLabel opponentFirst;
     private JLabel playerFirst;
     private JLabel opponentSecond;
@@ -20,11 +28,11 @@ public class GameClient extends JFrame {
     private JPanel gamePanel;
     private JLabel playerName;
     private JLabel opponentName;
+
     private JRadioButton playerRadioButton1;
     private JRadioButton playerRadioButton2;
     private JRadioButton opponentRadioButton1;
     private JRadioButton opponentRadioButton2;
-
     private JButton endTurnButton;
     private JButton divideButton;
 
@@ -33,6 +41,14 @@ public class GameClient extends JFrame {
     GameClient(User user, Socket socket){
         this.user = user;
         this.socket = socket;
+        try {
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        turnCount = 0;
+
         sendPlayerInfo();
 
         setContentPane(gamePanel);
@@ -48,6 +64,12 @@ public class GameClient extends JFrame {
         playerSecond.setIcon(one);
 
         endTurn();
+
+        endTurnButton.addActionListener(e -> {
+            turnCount++;
+            out.println("TurnCount=" + turnCount + "/");
+            endTurn();
+        });
 
         this.setVisible(true);
 
@@ -76,21 +98,10 @@ public class GameClient extends JFrame {
     }
 
     private void sendPlayerInfo(){
-        PrintWriter out = null;
-        try {
-            out = new PrintWriter(socket.getOutputStream(), true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         out.println("PlayerNickname=" + user.getNickName() + "/");
     }
     private void inGameProcess(){
-
-        BufferedReader in = null;
-        String gameStateLogs = null;
-
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             gameStateLogs = in.readLine();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -110,22 +121,49 @@ public class GameClient extends JFrame {
             }
         }
 
-        if (playerNo==1)
-            startTurn();
-
         while (true){
+            if (playerNo == 1 && turnCount % 2 == 0){
+                //player1in sırası
 
+                startTurn();
+            } else {
+                updateClientTurnCount();
+            }
+            if (playerNo == 2 && turnCount % 2 != 0) {
+                //player2nin sırası
 
-            if (endTurnButton.isEnabled()){
-
+                startTurn();
+            } else {
+                updateClientTurnCount();
             }
 
-            else {
-
-            }
 
         }
 
     }
 
+    private void updateClientTurnCount(){
+        try {
+            gameStateLogs = in.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println(gameStateLogs);
+
+        String[] parts = gameStateLogs.split("/");
+
+        int receivedTurnCount = 0;
+        for (String part : parts) {
+            if (part.startsWith("TurnCount=")) {
+                receivedTurnCount = Integer.parseInt(part.split("=")[1].split("/")[0]);
+                break;
+            }
+        }
+
+        if (turnCount!=receivedTurnCount){
+            turnCount = Math.max(receivedTurnCount,turnCount);
+            System.out.println(turnCount);
+        }
+    }
 }
