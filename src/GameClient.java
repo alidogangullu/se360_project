@@ -78,10 +78,10 @@ public class GameClient extends JFrame {
         opponentHand1 = 1;
         opponentHand2 = 1;
 
-        //load images
+        //load images todo assign left, right and opponent specific images using images/finger.jpg
         handImages = new ImageIcon[5];
         for (int i = 0; i <= 4; i++) {
-            handImages[i] = new ImageIcon("images/" + i + ".png");
+            handImages[i] = new ImageIcon("images/left/" + i + ".png");
         }
 
         //set hand images
@@ -146,7 +146,7 @@ public class GameClient extends JFrame {
         //set client gui
         setContentPane(gamePanel);
         setTitle("Game Screen");
-        setSize(575, 650);
+        setSize(900, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         playerName.setText(user.getNickName());
