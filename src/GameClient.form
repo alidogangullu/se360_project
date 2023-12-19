@@ -8,17 +8,17 @@
     <properties/>
     <border type="none"/>
     <children>
-      <component id="d587a" class="javax.swing.JLabel" binding="opponentFirst">
+      <component id="d587a" class="javax.swing.JLabel" binding="opponentFirstHandImage">
         <constraints>
-          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value=""/>
         </properties>
       </component>
-      <component id="bfc68" class="javax.swing.JLabel" binding="playerFirst">
+      <component id="bfc68" class="javax.swing.JLabel" binding="playerFirstHandImage">
         <constraints>
-          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value=""/>
@@ -29,15 +29,15 @@
           <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
       </hspacer>
-      <component id="69757" class="javax.swing.JLabel" binding="opponentSecond">
+      <component id="69757" class="javax.swing.JLabel" binding="opponentSecondHandImage">
         <constraints>
-          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value=""/>
         </properties>
       </component>
-      <component id="f421d" class="javax.swing.JLabel">
+      <component id="f421d" class="javax.swing.JLabel" binding="gameLabel">
         <constraints>
           <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -45,9 +45,9 @@
           <text value="Game Window Label"/>
         </properties>
       </component>
-      <component id="9cdb6" class="javax.swing.JLabel" binding="playerSecond">
+      <component id="9cdb6" class="javax.swing.JLabel" binding="playerSecondHandImage">
         <constraints>
-          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <text value=""/>
@@ -74,7 +74,7 @@
           <grid row="6" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="RadioButton"/>
+          <text value="Select"/>
         </properties>
       </component>
       <component id="63e77" class="javax.swing.JRadioButton" binding="playerRadioButton2">
@@ -82,7 +82,7 @@
           <grid row="6" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="RadioButton"/>
+          <text value="Select"/>
         </properties>
       </component>
       <component id="f5d6" class="javax.swing.JRadioButton" binding="opponentRadioButton1">
@@ -90,7 +90,7 @@
           <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="RadioButton"/>
+          <text value="Select"/>
         </properties>
       </component>
       <component id="20ce5" class="javax.swing.JRadioButton" binding="opponentRadioButton2">
@@ -98,7 +98,7 @@
           <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="RadioButton"/>
+          <text value="Select"/>
         </properties>
       </component>
       <vspacer id="c4cb">
