@@ -9,8 +9,8 @@ import java.net.Socket;
 class App {
     public static void main(String[] args) {
 
-        User adg = new User("ADG");
-        User hediye = new User("ArmAras");
+        //User adg = new User("ADG");
+        //User hediye = new User("ArmAras");
         User armagan = new User("arm",1200);
 
         Socket socket;
@@ -32,9 +32,8 @@ public class GameClient extends JFrame {
 
 
     //connection variables
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
+    private final BufferedReader in;
+    private final PrintWriter out;
 
     //game specific
     private int turnCount;
@@ -43,7 +42,10 @@ public class GameClient extends JFrame {
     private int opponentHand1;
     private int opponentHand2;
     private String gameStateLogs;
-    private ImageIcon[] handImages;
+    private final ImageIcon[] leftHandImages;
+    private final ImageIcon[] rightHandImages;
+    private final ImageIcon[] opponentLeftHandImages;
+    private final ImageIcon[] opponentRighHandImages;
 
     private JLabel opponentFirstHandImage;
     private JLabel playerFirstHandImage;
@@ -64,7 +66,6 @@ public class GameClient extends JFrame {
     GameClient(User user, Socket socket){
         //socket and server settings
         this.user = user;
-        this.socket = socket;
         try {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
@@ -80,10 +81,25 @@ public class GameClient extends JFrame {
         opponentHand1 = 1;
         opponentHand2 = 1;
 
-        //load images todo assign left, right and opponent specific images using images/finger.jpg
-        handImages = new ImageIcon[5];
+        //load images
+        leftHandImages = new ImageIcon[5];
         for (int i = 0; i <= 4; i++) {
-            handImages[i] = new ImageIcon("images/left/" + i + ".png");
+            leftHandImages[i] = new ImageIcon("images/left/" + i + ".png");
+        }
+
+        rightHandImages = new ImageIcon[5];
+        for (int i = 0; i <= 4; i++) {
+            rightHandImages[i] = new ImageIcon("images/right/" + i + ".png");
+        }
+
+        opponentLeftHandImages = new ImageIcon[5];
+        for (int i = 0; i <= 4; i++) {
+            opponentLeftHandImages[i] = new ImageIcon("images/left-opponent/" + i + ".png");
+        }
+
+        opponentRighHandImages = new ImageIcon[5];
+        for (int i = 0; i <= 4; i++) {
+            opponentRighHandImages[i] = new ImageIcon("images/right-opponent/" + i + ".png");
         }
 
         //set hand images
@@ -333,10 +349,10 @@ public class GameClient extends JFrame {
             turnCount = receivedTurnCount;
     }
     private void updateHandImages(){
-        opponentFirstHandImage.setIcon(handImages[opponentHand1]);
-        playerFirstHandImage.setIcon(handImages[playerHand1]);
-        opponentSecondHandImage.setIcon(handImages[opponentHand2]);
-        playerSecondHandImage.setIcon(handImages[playerHand2]);
+        opponentFirstHandImage.setIcon(opponentRighHandImages[opponentHand1]);
+        playerFirstHandImage.setIcon(leftHandImages[playerHand1]);
+        opponentSecondHandImage.setIcon(opponentLeftHandImages[opponentHand2]);
+        playerSecondHandImage.setIcon(rightHandImages[playerHand2]);
     }
     private boolean gameContinues(){
         if (playerHand1 + playerHand2 == 0){
