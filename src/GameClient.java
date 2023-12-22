@@ -11,6 +11,7 @@ class App {
 
         User adg = new User("ADG");
         User hediye = new User("ArmAras");
+        User armagan = new User("arm",1200);
 
         Socket socket;
         try {
@@ -21,13 +22,14 @@ class App {
         System.out.println("Connected to server.");
 
         //GameClient gameClient = new GameClient(adg,socket);
-        GameClient gameClient = new GameClient(hediye, socket);
+        GameClient gameClient = new GameClient(armagan, socket);
 
     }
 }
 
 public class GameClient extends JFrame {
     User user;
+
 
     //connection variables
     private Socket socket;
@@ -206,7 +208,7 @@ public class GameClient extends JFrame {
         gameLabel.setText("Waiting for opponent");
     }
     private void sendPlayerInfo(){
-        out.println("PlayerNickname=" + user.getNickName() + "/");
+        out.println("PlayerNickname=" + user.getNickName() + "/" + "PlayerRating=" + user.getRating() + "/");
     }
     private String makeCurrentMove() throws EmptyButtonException{
         int playerSelectedHand = 0;

@@ -2,10 +2,28 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-class GameServer {
+class GameServer extends Thread {
+
+    static ServerSocket serverSocket;
+
+
+    static {
+        try {
+            serverSocket = new ServerSocket(12345);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static boolean playersFound = true;
     public static void main(String[] args) {
-        GameServer server = new GameServer();
-        server.connectPlayer();
+        while (true) {
+            GameServer server = new GameServer();
+            if(playersFound) {
+                playersFound = false;
+                new Thread(server).start();
+            }
+        }
     }
 
     int turnCount = 0;
@@ -176,25 +194,34 @@ class GameServer {
     }
     private void connectPlayer(){
         try {
-            ServerSocket serverSocket = new ServerSocket(12345);
+
             System.out.println("Server is running. Waiting for players...");
 
             // Wait for player 1
             Socket player1Socket = serverSocket.accept();
             Player player1 = new Player(player1Socket);
             System.out.println("Player 1 connected.");
+
             // Inform player 1
             ObjectOutputStream player1Out = new ObjectOutputStream(player1Socket.getOutputStream());
             player1Out.writeObject("You are player 1. Waiting for player 2.");
 
+            // Wait for player
+            Player player2;
+            Socket player2Socket;
+            do {
+                player2Socket = serverSocket.accept();
+                player2 = new Player(player2Socket);
 
-            // Wait for player 2
-            Socket player2Socket = serverSocket.accept();
-            Player player2 = new Player(player2Socket);
+                if(!player1.fairMatch(player2.getRating())) player2Socket.close();
+
+            } while(!player1.fairMatch(player2.getRating()));
             System.out.println("Player 2 connected.");
             // Inform player 2
             ObjectOutputStream player2Out = new ObjectOutputStream(player2Socket.getOutputStream());
             player2Out.writeObject("You are player 2. Game starting.");
+
+            playersFound = true;
 
             //Start Game
             inGameProcess(player1, player2);
@@ -218,11 +245,21 @@ class GameServer {
             return true;
         }
     }
+
+    public void run()
+    {
+        connectPlayer();
+    }
 }
 
 class Player{
     private Socket playerSocket;
     private String nickName;
+    private  int rating;
+
+    public int getRating() {
+        return rating;
+    }
 
     public Player(Socket playerSocket) {
         this.playerSocket = playerSocket;
@@ -246,13 +283,25 @@ class Player{
         String playerMessage = playerIn.readLine();
         String[] playerInfo = playerMessage.split("/");
 
-        String opponentName = "";
+        String nickname = "";
+
         for (String part : playerInfo) {
             if (part.startsWith("PlayerNickname=")) {
-                opponentName = part.split("=")[1].trim();
-                break;
+                nickname = part.split("=")[1].trim();
             }
+            if(part.startsWith("PlayerRating=")) {
+                rating = Integer.parseInt(part.split("=")[1].trim());
+            }
+
         }
-        return opponentName;
+        return nickname;
     }
+
+    public boolean fairMatch(int opponentRating) {
+        if( 200 > Math.abs(rating - opponentRating) ) {
+            return true;
+        }
+        return false;
+    }
+
 }
