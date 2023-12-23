@@ -256,7 +256,6 @@ class InGameHandler extends Thread {
 
 class LoginHandler extends Thread {
     ServerSocket loginServerSocket;
-
     {
         try {
             loginServerSocket = new ServerSocket(1234);
@@ -264,6 +263,7 @@ class LoginHandler extends Thread {
             throw new RuntimeException(e);
         }
     }
+    DatabaseOperations db = new DatabaseOperations();
 
     public void run() {
         try {
@@ -279,10 +279,8 @@ class LoginHandler extends Thread {
     }
 
     private void handleLogin(Socket playerSocket) throws IOException {
-        String username = "test";
-        String password = "test";
-
         boolean isSuccessful = false;
+        User user = null;
 
         BufferedReader playerDataReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
         String playerData = playerDataReader.readLine();
@@ -302,32 +300,34 @@ class LoginHandler extends Thread {
                     loginPlayerPassword = part.split("=")[1].split("/")[0];
                 }
             }
+            User tempUser = db.getUser(loginPlayerUsername);
 
-            //todo check user info from db
-            if (loginPlayerUsername.equals(username)&&loginPlayerPassword.equals(password)) {
+            if (tempUser!=null&&loginPlayerUsername.equals(tempUser.getUsername())&&loginPlayerPassword.equals(tempUser.getPassword())) {
                 isSuccessful = true;
+                user = tempUser;
             }
 
         } else if (playerDataParts[0].contains("SignupPlayerUsername=")) {
             //signup process
-            String signupPlayerUsername;
-            String signupPlayerPassword;
+            String signupPlayerUsername = null;
+            String signupPlayerPassword = null;
 
             for (String part : playerDataParts) {
-                if (part.startsWith("LoginPlayerUsername=")) {
+                if (part.startsWith("SignupPlayerUsername=")) {
                     signupPlayerUsername = part.split("=")[1].split("/")[0];
                 }
-                if (part.startsWith("LoginPlayerPassword=")) {
+                if (part.startsWith("SignupPlayerPassword=")) {
                     signupPlayerPassword = part.split("=")[1].split("/")[0];
                 }
             }
+            user = new User(signupPlayerUsername,signupPlayerPassword,1000);
+            isSuccessful = db.saveUser(user);
 
-            //todo add user info to db
         }
 
         ObjectOutputStream playerOut= new ObjectOutputStream(playerSocket.getOutputStream());
         if (isSuccessful){
-            playerOut.writeObject(new User("test",1000));
+            playerOut.writeObject(user);
         } else {
             playerOut.writeObject(null);
         }

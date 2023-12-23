@@ -22,7 +22,7 @@ public class GameLobby extends JFrame{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         this.user = user;
-        userInfoLabel.setText("Welcome " + user.getNickName() + ", Rank Point: " + user.getRating());
+        userInfoLabel.setText("Welcome " + user.getUsername() + ", Rank Point: " + user.getRating());
         this.setVisible(true);
 
         gameSearchButton.addActionListener(e -> searchGame());
@@ -43,7 +43,7 @@ public class GameLobby extends JFrame{
             out = new PrintWriter(socket.getOutputStream(), true);
 
             //send player info
-            out.println("PlayerNickname=" + user.getNickName() + "/" + "PlayerRating=" + user.getRating() + "/");
+            out.println("PlayerNickname=" + user.getUsername() + "/" + "PlayerRating=" + user.getRating() + "/");
 
             gameConnectionLogs = in.readLine();
         } catch (IOException e) {

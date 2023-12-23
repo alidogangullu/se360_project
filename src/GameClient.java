@@ -1,11 +1,12 @@
 import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
 
 public class GameClient extends JFrame {
     private User user;
@@ -60,6 +61,18 @@ public class GameClient extends JFrame {
         playerHand2 = 1;
         opponentHand1 = 1;
         opponentHand2 = 1;
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try {
+                    GameLobby.socket.close();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+                System.exit(0);
+            }
+        });
 
         //load images
         leftHandImages = new ImageIcon[5];
@@ -147,7 +160,7 @@ public class GameClient extends JFrame {
         setSize(900, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        playerName.setText(user.getNickName());
+        playerName.setText(user.getUsername());
         endTurn();
         this.setVisible(true);
 
@@ -273,8 +286,8 @@ public class GameClient extends JFrame {
             } else {
                 updateClientWithServer();
             }
-
         }
+
     }
     private void updateClientWithServer(){
         try {
@@ -314,7 +327,7 @@ public class GameClient extends JFrame {
     private boolean gameContinues(){
         if (playerHand1 + playerHand2 == 0){
             //player lose
-            JOptionPane.showMessageDialog(null, "You Lost! " + user.getNickName(), "Try Again", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "You Lost! " + user.getUsername(), "Try Again", JOptionPane.INFORMATION_MESSAGE);
             out.println("TurnCount=" + ++turnCount + "/" + "PlayerHand1=0/"+"PlayerHand2=0/"
                     +"PlayerSelectedHand=1/"+"OpponentSelectedHand=1/");
             //close game client
@@ -324,7 +337,7 @@ public class GameClient extends JFrame {
         }
         else if (opponentHand1 + opponentHand2 == 0){
             //player win
-            JOptionPane.showMessageDialog(null, "You Won! " + user.getNickName(), "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "You Won! " + user.getUsername(), "Congratulations", JOptionPane.INFORMATION_MESSAGE);
             out.println("TurnCount=" + ++turnCount + "/" + "OpponentHand1=0/"+"OpponentHand2=0/"
                     +"PlayerSelectedHand=1/"+"OpponentSelectedHand=1/");
             //close game client

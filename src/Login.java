@@ -11,13 +11,12 @@ public class Login extends JFrame{
     private JLabel password;
     private JLabel warningLabel;
     private JPanel loginPanel;
-    private GameLobby lobby;
 
     Socket socket;
     PrintWriter out;
     ObjectInputStream in;
 
-    Login(GameLobby lobby){
+    Login(){
         //set client gui
         setContentPane(loginPanel);
         setTitle("Battle of Hands");
@@ -26,8 +25,6 @@ public class Login extends JFrame{
         setLocationRelativeTo(null);
         warningLabel.setVisible(false);
         this.setVisible(true);
-
-        this.lobby = lobby;
 
         loginButton.addActionListener(event -> {
             try {
@@ -41,7 +38,8 @@ public class Login extends JFrame{
                     openGameLobby(user);
                     this.dispose();
                 } else {
-                    warningLabel.setText("Login Error!");
+                    warningLabel.setText("Login Error, username and password do not match!");
+                    warningLabel.setVisible(true);
                 }
                 socket.close();
             } catch (IOException e) {
@@ -53,17 +51,18 @@ public class Login extends JFrame{
 
         signupButton.addActionListener(event -> {
             try {
-                socket = new Socket("localhost", 12345);
+                socket = new Socket("localhost", 1234);
                 out = new PrintWriter(socket.getOutputStream(), true);
-                in  = new ObjectInputStream(socket.getInputStream());
-
                 out.println("SignupPlayerUsername=" + usernameText.getText() + "/" + "SignupPlayerPassword=" + passwordText.getText() + "/");
+
+                in  = new ObjectInputStream(socket.getInputStream());
                 User user = (User) in.readObject();
                 if (user!=null){
                     openGameLobby(user);
                     this.dispose();
                 } else {
-                    warningLabel.setText("Signup Error");
+                    warningLabel.setText("Signup Error, username already exist!");
+                    warningLabel.setVisible(true);
                 }
 
                 socket.close();
@@ -78,7 +77,7 @@ public class Login extends JFrame{
 
     private void openGameLobby(User user){
         new Thread(() -> {
-           lobby = new GameLobby(user);
+            Main.gameLobby = new GameLobby(user);
         }).start();
     }
 
