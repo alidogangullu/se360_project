@@ -6,34 +6,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-class App {
-    public static void main(String[] args) {
-
-        //User adg = new User("ADG");
-        //User hediye = new User("ArmAras");
-        User armagan = new User("arm",1200);
-
-        Socket socket;
-        try {
-            socket = new Socket("localhost", 12345);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Connected to server.");
-
-        //GameClient gameClient = new GameClient(adg,socket);
-        GameClient gameClient = new GameClient(armagan, socket);
-
-    }
-}
 
 public class GameClient extends JFrame {
-    User user;
-
+    private User user;
 
     //connection variables
-    private final BufferedReader in;
-    private final PrintWriter out;
+    private BufferedReader in;
+    private PrintWriter out;
+    private int playerNo;
 
     //game specific
     private int turnCount;
@@ -46,15 +26,13 @@ public class GameClient extends JFrame {
     private final ImageIcon[] rightHandImages;
     private final ImageIcon[] opponentLeftHandImages;
     private final ImageIcon[] opponentRighHandImages;
-
     private JLabel opponentFirstHandImage;
     private JLabel playerFirstHandImage;
     private JLabel opponentSecondHandImage;
     private JLabel playerSecondHandImage;
     private JPanel gamePanel;
     private JLabel playerName;
-    private JLabel opponentName;
-
+    private JLabel opponentNameLabel;
     private JRadioButton playerRadioButton1;
     private JRadioButton playerRadioButton2;
     private JRadioButton opponentRadioButton1;
@@ -63,16 +41,18 @@ public class GameClient extends JFrame {
     private JButton divideButton;
     private JLabel gameLabel;
 
-    GameClient(User user, Socket socket){
+    GameClient(User user, String opponentName, int playerNo){
         //socket and server settings
         this.user = user;
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(GameLobby.socket.getInputStream()));
+            out = new PrintWriter(GameLobby.socket.getOutputStream(), true);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        sendPlayerInfo();
+
+        this.playerNo = playerNo;
+        this.opponentNameLabel.setText(opponentName);
 
         //game specific settings
         turnCount = 0;
@@ -223,9 +203,6 @@ public class GameClient extends JFrame {
 
         gameLabel.setText("Waiting for opponent");
     }
-    private void sendPlayerInfo(){
-        out.println("PlayerNickname=" + user.getNickName() + "/" + "PlayerRating=" + user.getRating() + "/");
-    }
     private String makeCurrentMove() throws EmptyButtonException{
         int playerSelectedHand = 0;
         int opponentSelectedHand = 0;
@@ -281,26 +258,6 @@ public class GameClient extends JFrame {
                 +"OpponentHand1="+ opponentHand1Old +"/"+"OpponentHand2="+ opponentHand2Old +"/";
     }
     private void inGameProcess(){
-        try {
-            gameStateLogs = in.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        int playerNo = 0;
-        String opponentNameText = "";
-
-        String[] parts = gameStateLogs.split("/");
-
-        for (String part : parts) {
-            if (part.contains("PlayerNo")) {
-                playerNo = Integer.parseInt(part.split("=")[1].trim());
-            } else if (part.contains("OpponentName")) {
-                opponentNameText = part.split("=")[1].trim();
-                opponentName.setText("Opponent: " + opponentNameText);
-            }
-        }
-
         while (gameContinues()){
             if (playerNo == 1 && turnCount % 2 == 0){
                 //first connected player
@@ -362,6 +319,7 @@ public class GameClient extends JFrame {
                     +"PlayerSelectedHand=1/"+"OpponentSelectedHand=1/");
             //close game client
             this.dispose();
+            Main.gameLobby.setVisible(true);
             return false;
         }
         else if (opponentHand1 + opponentHand2 == 0){
@@ -371,6 +329,7 @@ public class GameClient extends JFrame {
                     +"PlayerSelectedHand=1/"+"OpponentSelectedHand=1/");
             //close game client
             this.dispose();
+            Main.gameLobby.setVisible(true);
             return false;
         }
         else {

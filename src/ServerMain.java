@@ -2,14 +2,11 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-class GameServer extends Thread {
-
-    static ServerSocket serverSocket;
-
-
+public class ServerMain {
+    static ServerSocket inGameServerSocket;
     static {
         try {
-            serverSocket = new ServerSocket(12345);
+            inGameServerSocket = new ServerSocket(12345);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -17,14 +14,21 @@ class GameServer extends Thread {
 
     static boolean playersFound = true;
     public static void main(String[] args) {
+
+        new Thread(new LoginHandler()).start();
+
         while (true) {
-            GameServer server = new GameServer();
+            InGameHandler server = new InGameHandler();
             if(playersFound) {
                 playersFound = false;
                 new Thread(server).start();
             }
         }
+
     }
+}
+
+class InGameHandler extends Thread {
 
     int turnCount = 0;
     int player1Hand1 = 1;
@@ -32,21 +36,22 @@ class GameServer extends Thread {
     int player2Hand1 = 1;
     int player2Hand2 = 1;
 
-    private void inGameProcess(Player player1, Player player2) throws IOException {
+
+    private void inGameProcess(ConnectedPlayer connectedPlayer1, ConnectedPlayer connectedPlayer2) throws IOException {
 
         PrintWriter player1Out;
         PrintWriter player2Out;
 
-        player1Out = new PrintWriter(player1.getPlayerSocket().getOutputStream(), true);
-        player1Out.println("PlayerNo=1/" + "OpponentName=" + player2.getNickName() + "/");
+        player1Out = new PrintWriter(connectedPlayer1.getPlayerSocket().getOutputStream(), true);
+        player1Out.println("PlayerNo=1/" + "OpponentName=" + connectedPlayer2.getNickName() + "/");
 
-        player2Out = new PrintWriter(player2.getPlayerSocket().getOutputStream(), true);
-        player2Out.println("PlayerNo=2/" + "OpponentName=" + player1.getNickName() +"/");
+        player2Out = new PrintWriter(connectedPlayer2.getPlayerSocket().getOutputStream(), true);
+        player2Out.println("PlayerNo=2/" + "OpponentName=" + connectedPlayer1.getNickName() +"/");
 
-        BufferedReader player1In = new BufferedReader(new InputStreamReader(player1.getPlayerSocket().getInputStream()));
-        BufferedReader player2In = new BufferedReader(new InputStreamReader(player2.getPlayerSocket().getInputStream()));
+        BufferedReader player1In = new BufferedReader(new InputStreamReader(connectedPlayer1.getPlayerSocket().getInputStream()));
+        BufferedReader player2In = new BufferedReader(new InputStreamReader(connectedPlayer2.getPlayerSocket().getInputStream()));
 
-        while (gameContinues(player1, player2)) {
+        while (gameContinues(connectedPlayer1, connectedPlayer2)) {
 
             if ( turnCount % 2 == 0) {
                 //First Connected Player
@@ -127,7 +132,6 @@ class GameServer extends Thread {
             }
         }
     }
-
     private void attackOpponentHands(int playerNo, int selectedPlayerHand, int selectedOpponentHand) {
         int playerSelectedHandValue;
         int opponentSelectedHandValue;
@@ -194,74 +198,153 @@ class GameServer extends Thread {
     }
     private void connectPlayer(){
         try {
-
-            System.out.println("Server is running. Waiting for players...");
+            System.out.println("Waiting for players...");
 
             // Wait for player 1
-            Socket player1Socket = serverSocket.accept();
-            Player player1 = new Player(player1Socket);
+            Socket player1Socket = ServerMain.inGameServerSocket.accept();
+            ConnectedPlayer connectedPlayer1 = new ConnectedPlayer(player1Socket);
             System.out.println("Player 1 connected.");
 
-            // Inform player 1
-            ObjectOutputStream player1Out = new ObjectOutputStream(player1Socket.getOutputStream());
-            player1Out.writeObject("You are player 1. Waiting for player 2.");
-
-            // Wait for player
-            Player player2;
+            // Wait for player 2
+            ConnectedPlayer connectedPlayer2;
             Socket player2Socket;
             do {
-                player2Socket = serverSocket.accept();
-                player2 = new Player(player2Socket);
+                player2Socket = ServerMain.inGameServerSocket.accept();
+                connectedPlayer2 = new ConnectedPlayer(player2Socket);
 
-                if(!player1.fairMatch(player2.getRating())) player2Socket.close();
+                if(!connectedPlayer1.fairMatch(connectedPlayer2.getRating())) player2Socket.close();
 
-            } while(!player1.fairMatch(player2.getRating()));
+            } while(!connectedPlayer1.fairMatch(connectedPlayer2.getRating()));
             System.out.println("Player 2 connected.");
-            // Inform player 2
-            ObjectOutputStream player2Out = new ObjectOutputStream(player2Socket.getOutputStream());
-            player2Out.writeObject("You are player 2. Game starting.");
 
-            playersFound = true;
+            // Inform players
+            ObjectOutputStream player2Out = new ObjectOutputStream(player2Socket.getOutputStream());
+            ObjectOutputStream player1Out = new ObjectOutputStream(player1Socket.getOutputStream());
+            player2Out.writeObject("Game starting.");
+            player1Out.writeObject("Game starting.");
+
+            ServerMain.playersFound = true;
 
             //Start Game
-            inGameProcess(player1, player2);
+            inGameProcess(connectedPlayer1, connectedPlayer2);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    private boolean gameContinues(Player player1, Player player2){
+    private boolean gameContinues(ConnectedPlayer connectedPlayer1, ConnectedPlayer connectedPlayer2){
         if (player1Hand1 + player1Hand2 == 0){
             //player2 win
-            System.out.println("Player " + player2.getNickName() + " won!");
+            System.out.println("Player " + connectedPlayer2.getNickName() + " won!");
             return false;
         }
         else if (player2Hand1 + player2Hand2 == 0){
             //player1 win
-            System.out.println("Player " + player1.getNickName() + " won!");
+            System.out.println("Player " + connectedPlayer1.getNickName() + " won!");
             return false;
         }
         else {
             return true;
         }
     }
-
     public void run()
     {
         connectPlayer();
     }
 }
 
-class Player{
-    private Socket playerSocket;
-    private String nickName;
+
+class LoginHandler extends Thread {
+    ServerSocket loginServerSocket;
+
+    {
+        try {
+            loginServerSocket = new ServerSocket(1234);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void run() {
+        try {
+
+            while (true) {
+                System.out.println("Waiting for player login...");
+                Socket playerSocket = loginServerSocket.accept();
+                handleLogin(playerSocket);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void handleLogin(Socket playerSocket) throws IOException {
+        String username = "test";
+        String password = "test";
+
+        boolean isSuccessful = false;
+
+        BufferedReader playerDataReader = new BufferedReader(new InputStreamReader(playerSocket.getInputStream()));
+        String playerData = playerDataReader.readLine();
+
+        String[] playerDataParts = playerData.split("/");
+
+        if (playerDataParts[0].contains("LoginPlayerUsername=")){
+            //login process
+            String loginPlayerUsername = "";
+            String loginPlayerPassword = "";
+
+            for (String part : playerDataParts) {
+                if (part.startsWith("LoginPlayerUsername=")) {
+                    loginPlayerUsername = part.split("=")[1].split("/")[0];
+                }
+                if (part.startsWith("LoginPlayerPassword=")) {
+                    loginPlayerPassword = part.split("=")[1].split("/")[0];
+                }
+            }
+
+            //todo check user info from db
+            if (loginPlayerUsername.equals(username)&&loginPlayerPassword.equals(password)) {
+                isSuccessful = true;
+            }
+
+        } else if (playerDataParts[0].contains("SignupPlayerUsername=")) {
+            //signup process
+            String signupPlayerUsername;
+            String signupPlayerPassword;
+
+            for (String part : playerDataParts) {
+                if (part.startsWith("LoginPlayerUsername=")) {
+                    signupPlayerUsername = part.split("=")[1].split("/")[0];
+                }
+                if (part.startsWith("LoginPlayerPassword=")) {
+                    signupPlayerPassword = part.split("=")[1].split("/")[0];
+                }
+            }
+
+            //todo add user info to db
+        }
+
+        ObjectOutputStream playerOut= new ObjectOutputStream(playerSocket.getOutputStream());
+        if (isSuccessful){
+            playerOut.writeObject(new User("test",1000));
+        } else {
+            playerOut.writeObject(null);
+        }
+
+    }
+}
+
+class ConnectedPlayer {
+    private final Socket playerSocket;
+    private final String nickName;
     private  int rating;
 
     public int getRating() {
         return rating;
     }
 
-    public Player(Socket playerSocket) {
+    public ConnectedPlayer(Socket playerSocket) {
         this.playerSocket = playerSocket;
         try {
             nickName = handlePlayerInfo();

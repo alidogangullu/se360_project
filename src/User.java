@@ -1,4 +1,6 @@
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     private int id;
     private String nickName;
 
@@ -12,9 +14,6 @@ public class User {
 
     private int rating;
 
-    public User(String nickName) {
-        this.nickName = nickName;
-    }
     public  User(String nickName,int rating) {
         this.nickName = nickName;
         this.rating = rating;
