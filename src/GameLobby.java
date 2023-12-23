@@ -7,7 +7,6 @@ import java.net.Socket;
 
 public class GameLobby extends JFrame{
     public static Socket socket;
-    private User user;
     private JPanel lobbyPanel;
     private JButton gameSearchButton;
     private JLabel userInfoLabel;
@@ -15,21 +14,22 @@ public class GameLobby extends JFrame{
     BufferedReader in;
     PrintWriter out;
 
-    GameLobby(User user){
+    GameLobby(){
         setContentPane(lobbyPanel);
         setTitle("Finger Game");
-        setSize(300, 200);
+        setSize(350, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        this.user = user;
-        userInfoLabel.setText("Welcome " + user.getUsername() + ", Rank Point: " + user.getRating());
+        userInfoLabel.setText("Welcome " + Main.user.getUsername() + ", Rank Point: " + Main.user.getRating());
         this.setVisible(true);
 
-        gameSearchButton.addActionListener(e -> searchGame());
+        gameSearchButton.addActionListener(e -> {
+            searchGame();
+            userInfoLabel.setText("Welcome " + Main.user.getUsername() + ", Rank Point: " + Main.user.getRating());
+        });
     }
 
     private void searchGame(){
-        gameSearchButton.setText("In Queue");
         try {
             socket = new Socket("localhost", 12345);
         } catch (IOException e) {
@@ -43,7 +43,7 @@ public class GameLobby extends JFrame{
             out = new PrintWriter(socket.getOutputStream(), true);
 
             //send player info
-            out.println("PlayerNickname=" + user.getUsername() + "/" + "PlayerRating=" + user.getRating() + "/");
+            out.println("PlayerNickname=" + Main.user.getUsername() + "/" + "PlayerRating=" + Main.user.getRating() + "/");
 
             gameConnectionLogs = in.readLine();
         } catch (IOException e) {
@@ -51,6 +51,7 @@ public class GameLobby extends JFrame{
         }
 
         int playerNo = 0;
+        int opponentRating = 0;
         String opponentNameText = "";
 
         String[] parts = gameConnectionLogs.split("/");
@@ -62,15 +63,18 @@ public class GameLobby extends JFrame{
                 opponentNameText = part.split("=")[1].trim();
 
             }
+            else if (part.contains("OpponentRating")) {
+                opponentRating = Integer.parseInt(part.split("=")[1].trim());
+
+            }
         }
         this.setVisible(false);
-        gameSearchButton.setText("Play");
 
         String finalOpponentNameText = opponentNameText;
         int finalPlayerNo = playerNo;
+        int finalOpponentRating = opponentRating;
         new Thread(() -> {
-            GameClient gameClient = new GameClient(user, finalOpponentNameText, finalPlayerNo);
+            GameClient gameClient = new GameClient(finalOpponentNameText, finalPlayerNo, finalOpponentRating);
         }).start();
-
     }
 }

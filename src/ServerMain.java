@@ -43,10 +43,10 @@ class InGameHandler extends Thread {
         PrintWriter player2Out;
 
         player1Out = new PrintWriter(connectedPlayer1.getPlayerSocket().getOutputStream(), true);
-        player1Out.println("PlayerNo=1/" + "OpponentName=" + connectedPlayer2.getNickName() + "/");
+        player1Out.println("PlayerNo=1/" + "OpponentName=" + connectedPlayer2.getNickName() + "/"+ "OpponentRating="+ connectedPlayer2.getRating());
 
         player2Out = new PrintWriter(connectedPlayer2.getPlayerSocket().getOutputStream(), true);
-        player2Out.println("PlayerNo=2/" + "OpponentName=" + connectedPlayer1.getNickName() +"/");
+        player2Out.println("PlayerNo=2/" + "OpponentName=" + connectedPlayer1.getNickName() + "/"+ "OpponentRating="+ connectedPlayer1.getRating());
 
         BufferedReader player1In = new BufferedReader(new InputStreamReader(connectedPlayer1.getPlayerSocket().getInputStream()));
         BufferedReader player2In = new BufferedReader(new InputStreamReader(connectedPlayer2.getPlayerSocket().getInputStream()));
@@ -131,6 +131,10 @@ class InGameHandler extends Thread {
                         + "OpponentHand1="+player2Hand1+"/"+"OpponentHand2="+player2Hand2+"/");
             }
         }
+        player2Out.println("TurnCount=" + turnCount + "/"
+                + "PlayerHand1="+player2Hand1+"/"+"PlayerHand2="+player2Hand2+"/"
+                + "OpponentHand1="+player1Hand1+"/"+"OpponentHand2="+player1Hand2+"/");
+
     }
     private void attackOpponentHands(int playerNo, int selectedPlayerHand, int selectedOpponentHand) {
         int playerSelectedHandValue;
@@ -205,6 +209,9 @@ class InGameHandler extends Thread {
             ConnectedPlayer connectedPlayer1 = new ConnectedPlayer(player1Socket);
             System.out.println("Player 1 connected.");
 
+            ObjectOutputStream player1Out = new ObjectOutputStream(player1Socket.getOutputStream());
+            player1Out.writeObject("Waiting Player 2.");
+
             // Wait for player 2
             ConnectedPlayer connectedPlayer2;
             Socket player2Socket;
@@ -219,28 +226,33 @@ class InGameHandler extends Thread {
 
             // Inform players
             ObjectOutputStream player2Out = new ObjectOutputStream(player2Socket.getOutputStream());
-            ObjectOutputStream player1Out = new ObjectOutputStream(player1Socket.getOutputStream());
+
             player2Out.writeObject("Game starting.");
-            player1Out.writeObject("Game starting.");
+
 
             ServerMain.playersFound = true;
 
             //Start Game
             inGameProcess(connectedPlayer1, connectedPlayer2);
+            player1Out.close();
+            player2Out.close();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     private boolean gameContinues(ConnectedPlayer connectedPlayer1, ConnectedPlayer connectedPlayer2){
+        DatabaseOperations db = new DatabaseOperations();
         if (player1Hand1 + player1Hand2 == 0){
             //player2 win
             System.out.println("Player " + connectedPlayer2.getNickName() + " won!");
+            db.setUserRatings(connectedPlayer2.getNickName(),connectedPlayer1.getNickName());
             return false;
         }
         else if (player2Hand1 + player2Hand2 == 0){
             //player1 win
             System.out.println("Player " + connectedPlayer1.getNickName() + " won!");
+            db.setUserRatings(connectedPlayer1.getNickName(),connectedPlayer2.getNickName());
             return false;
         }
         else {
@@ -373,7 +385,9 @@ class ConnectedPlayer {
                 nickname = part.split("=")[1].trim();
             }
             if(part.startsWith("PlayerRating=")) {
-                rating = Integer.parseInt(part.split("=")[1].trim());
+                //rating = Integer.parseInt(part.split("=")[1].trim());
+                DatabaseOperations db = new DatabaseOperations();
+                rating = db.getUserRating(nickname);
             }
 
         }

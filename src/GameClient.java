@@ -9,12 +9,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 public class GameClient extends JFrame {
-    private User user;
 
     //connection variables
     private BufferedReader in;
     private PrintWriter out;
     private int playerNo;
+    private int opponentRating;
 
     //game specific
     private int turnCount;
@@ -42,9 +42,8 @@ public class GameClient extends JFrame {
     private JButton divideButton;
     private JLabel gameLabel;
 
-    GameClient(User user, String opponentName, int playerNo){
+    GameClient(String opponentName, int playerNo,int opponentRating){
         //socket and server settings
-        this.user = user;
         try {
             in = new BufferedReader(new InputStreamReader(GameLobby.socket.getInputStream()));
             out = new PrintWriter(GameLobby.socket.getOutputStream(), true);
@@ -53,6 +52,7 @@ public class GameClient extends JFrame {
         }
 
         this.playerNo = playerNo;
+        this.opponentRating = opponentRating;
         this.opponentNameLabel.setText(opponentName);
 
         //game specific settings
@@ -160,7 +160,7 @@ public class GameClient extends JFrame {
         setSize(900, 850);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        playerName.setText(user.getUsername());
+        playerName.setText(Main.user.getUsername());
         endTurn();
         this.setVisible(true);
 
@@ -276,16 +276,13 @@ public class GameClient extends JFrame {
                 //first connected player
                 updateHandImages();
                 startTurn();
-            } else {
-                updateClientWithServer();
             }
             if (playerNo == 2 && turnCount % 2 != 0) {
                 //second connected player
                 updateHandImages();
                 startTurn();
-            } else {
-                updateClientWithServer();
             }
+            updateClientWithServer();
         }
 
     }
@@ -325,11 +322,13 @@ public class GameClient extends JFrame {
         playerSecondHandImage.setIcon(rightHandImages[playerHand2]);
     }
     private boolean gameContinues(){
+        int difference = Math.abs(Main.user.getRating() - opponentRating);
         if (playerHand1 + playerHand2 == 0){
             //player lose
-            JOptionPane.showMessageDialog(null, "You Lost! " + user.getUsername(), "Try Again", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "You Lost! " + Main.user.getUsername(), "Try Again", JOptionPane.INFORMATION_MESSAGE);
             out.println("TurnCount=" + ++turnCount + "/" + "PlayerHand1=0/"+"PlayerHand2=0/"
                     +"PlayerSelectedHand=1/"+"OpponentSelectedHand=1/");
+            Main.user.setRating(Main.user.getRating()-difference);
             //close game client
             this.dispose();
             Main.gameLobby.setVisible(true);
@@ -337,9 +336,10 @@ public class GameClient extends JFrame {
         }
         else if (opponentHand1 + opponentHand2 == 0){
             //player win
-            JOptionPane.showMessageDialog(null, "You Won! " + user.getUsername(), "Congratulations", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(null, "You Won! " + Main.user.getUsername(), "Congratulations", JOptionPane.INFORMATION_MESSAGE);
             out.println("TurnCount=" + ++turnCount + "/" + "OpponentHand1=0/"+"OpponentHand2=0/"
                     +"PlayerSelectedHand=1/"+"OpponentSelectedHand=1/");
+            Main.user.setRating(Main.user.getRating()+difference);
             //close game client
             this.dispose();
             Main.gameLobby.setVisible(true);

@@ -33,9 +33,9 @@ public class Login extends JFrame{
                 out.println("LoginPlayerUsername=" + usernameText.getText() + "/" + "LoginPlayerPassword=" + passwordText.getText() + "/");
 
                 in  = new ObjectInputStream(socket.getInputStream());
-                User user = (User) in.readObject();
-                if (user!=null){
-                    openGameLobby(user);
+                Main.user = (User) in.readObject();
+                if (Main.user!=null){
+                    openGameLobby();
                     this.dispose();
                 } else {
                     warningLabel.setText("Login Error, username and password do not match!");
@@ -56,9 +56,9 @@ public class Login extends JFrame{
                 out.println("SignupPlayerUsername=" + usernameText.getText() + "/" + "SignupPlayerPassword=" + passwordText.getText() + "/");
 
                 in  = new ObjectInputStream(socket.getInputStream());
-                User user = (User) in.readObject();
-                if (user!=null){
-                    openGameLobby(user);
+                Main.user = (User) in.readObject();
+                if (Main.user!=null){
+                    openGameLobby();
                     this.dispose();
                 } else {
                     warningLabel.setText("Signup Error, username already exist!");
@@ -75,9 +75,9 @@ public class Login extends JFrame{
 
     }
 
-    private void openGameLobby(User user){
+    private void openGameLobby(){
         new Thread(() -> {
-            Main.gameLobby = new GameLobby(user);
+            Main.gameLobby = new GameLobby();
         }).start();
     }
 
