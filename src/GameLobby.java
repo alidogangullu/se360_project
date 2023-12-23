@@ -16,7 +16,7 @@ public class GameLobby extends JFrame{
 
     GameLobby(){
         setContentPane(lobbyPanel);
-        setTitle("Finger Game");
+        setTitle("Battle Of Hands");
         setSize(350, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
